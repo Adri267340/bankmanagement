@@ -3,6 +3,7 @@ package com.bank.management.controller;
 import com.bank.management.dto.UsuarioRequestDTO;
 import com.bank.management.dto.UsuarioResponseDTO;
 import com.bank.management.service.UsuarioService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class UsuarioController {
     }
 
     @GetMapping
+    @Operation(summary = "Obtener todos los usuarios")
     public ResponseEntity<List<UsuarioResponseDTO>> obtenerTodos() {
         return ResponseEntity.ok(usuarioService.obtenerTodos());
     }
