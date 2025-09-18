@@ -6,9 +6,9 @@ import java.time.LocalDateTime;
 
 @Data
 public class TransaccionResponseDTO {
-    private long id;
-    private String tipo;
+    private Long id;
     private BigDecimal monto;
+    private String tipo;
     private LocalDateTime fecha;
     private Long cuentaId;
 }
