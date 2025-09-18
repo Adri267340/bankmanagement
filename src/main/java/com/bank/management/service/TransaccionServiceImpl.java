@@ -43,4 +43,10 @@ public class TransaccionServiceImpl implements TransaccionService {
                 .map(transaccionMapper::toDto)
                 .orElse(null);
     }
+
+    @Override
+    public void eliminar(Long id) {
+        transaccionRepository.deleteById(id);
+    }
+
 }
