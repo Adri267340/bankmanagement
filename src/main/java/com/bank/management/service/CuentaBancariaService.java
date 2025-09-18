@@ -9,5 +9,6 @@ public interface CuentaBancariaService {
     CuentaResponseDTO guardar(CuentaRequestDTO dto);
     List<CuentaResponseDTO> obtenerTodas();
     CuentaResponseDTO obtenerPorId(Long id);
+    void eliminar(Long id);
 }
 
