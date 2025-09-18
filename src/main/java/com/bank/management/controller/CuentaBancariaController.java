@@ -4,6 +4,7 @@ import com.bank.management.dto.CuentaRequestDTO;
 import com.bank.management.dto.CuentaResponseDTO;
 import com.bank.management.service.CuentaBancariaService;
 import com.bank.management.service.CuentaBancariaServiceImpl;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ public class CuentaBancariaController {
     }
 
     @GetMapping
+    @Operation(summary = "Obtener todas las cuentas Bancarias")
     public ResponseEntity<List<CuentaResponseDTO>> obtenerTodas() {
         return ResponseEntity.ok(cuentaBancariaService.obtenerTodas());
     }
