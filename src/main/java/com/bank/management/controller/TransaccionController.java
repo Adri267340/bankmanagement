@@ -3,6 +3,7 @@ package com.bank.management.controller;
 import com.bank.management.dto.TransaccionRequestDTO;
 import com.bank.management.dto.TransaccionResponseDTO;
 import com.bank.management.service.TransaccionService;
+import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -24,6 +25,7 @@ public class TransaccionController {
     }
 
     @GetMapping
+    @Operation(summary = "Obtener todas las transacciones")
     public ResponseEntity<List<TransaccionResponseDTO>> obtenerTodos() {
         return ResponseEntity.ok(transaccionService.obtenerTodos());
     }
