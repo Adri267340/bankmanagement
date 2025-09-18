@@ -8,6 +8,6 @@ import java.util.List;
 public interface TransaccionService {
     TransaccionResponseDTO crear(TransaccionRequestDTO dto);
     List<TransaccionResponseDTO> obtenerTodos();
-    List<TransaccionResponseDTO> obtenerPorId(Long id);
-
+    TransaccionResponseDTO obtenerPorId(Long id); // <-- aquí está el cambio
 }
+

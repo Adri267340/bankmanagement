@@ -1,4 +1,12 @@
 package com.bank.management.service;
 
-public class UsuarioService {
+import com.bank.management.dto.UsuarioRequestDTO;
+import com.bank.management.dto.UsuarioResponseDTO;
+
+import java.util.List;
+
+public interface UsuarioService {
+    UsuarioResponseDTO guardar(UsuarioRequestDTO dto);
+    List<UsuarioResponseDTO> obtenerTodos();
+    UsuarioResponseDTO obtenerPorId(Long id);
 }

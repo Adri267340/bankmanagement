@@ -1,4 +1,13 @@
 package com.bank.management.service;
 
-public class CuentaBancariaService {
+import com.bank.management.dto.CuentaRequestDTO;
+import com.bank.management.dto.CuentaResponseDTO;
+
+import java.util.List;
+
+public interface CuentaBancariaService {
+    CuentaResponseDTO guardar(CuentaRequestDTO dto);
+    List<CuentaResponseDTO> obtenerTodas();
+    CuentaResponseDTO obtenerPorId(Long id);
 }
+
