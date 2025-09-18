@@ -42,4 +42,9 @@ public class CuentaBancariaServiceImpl implements CuentaBancariaService {
                 .map(cuentaBancariaMapper::toDto)
                 .orElse(null);
     }
+
+    @Override
+    public void eliminar(Long id) {
+        cuentaBancariaRepository.deleteById(id);
+    }
 }
