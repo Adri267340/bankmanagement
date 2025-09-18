@@ -8,6 +8,7 @@ import java.util.List;
 public interface TransaccionService {
     TransaccionResponseDTO crear(TransaccionRequestDTO dto);
     List<TransaccionResponseDTO> obtenerTodos();
-    TransaccionResponseDTO obtenerPorId(Long id); // <-- aquí está el cambio
+    TransaccionResponseDTO obtenerPorId(Long id);
+    void eliminar(Long id);
 }
 
