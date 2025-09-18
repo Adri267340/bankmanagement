@@ -41,4 +41,10 @@ public class UsuarioServiceImpl implements UsuarioService {
                 .map(usuarioMapper::toDto)
                 .orElse(null);
     }
+
+    @Override
+    public void eliminar(Long id) {
+        usuarioRepository.deleteById(id);
+    }
+
 }
