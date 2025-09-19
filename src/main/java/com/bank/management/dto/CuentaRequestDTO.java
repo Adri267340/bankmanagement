@@ -6,5 +6,5 @@ import lombok.Data;
 @Data
 public class CuentaRequestDTO {
     @NotNull(message = "El id del usuario es obligatorio")
-    private Long UsuarioId;
+    private Long usuarioId;
 }
