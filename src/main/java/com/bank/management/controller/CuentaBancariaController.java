@@ -22,6 +22,7 @@ public class CuentaBancariaController {
     }
 
     @PostMapping
+    @Operation(summary = "Crear cuenta")
     public ResponseEntity<CuentaResponseDTO> crearCuenta(@RequestBody CuentaRequestDTO dto) {
         return ResponseEntity.ok(cuentaBancariaService.guardar(dto));
     }
@@ -33,12 +34,14 @@ public class CuentaBancariaController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener cuenta por numero de id")
     public ResponseEntity<CuentaResponseDTO> obtenerPorId(@PathVariable Long id) {
         CuentaResponseDTO cuenta = cuentaBancariaService.obtenerPorId(id);
         return (cuenta != null) ? ResponseEntity.ok(cuenta) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar cuenta")
     public ResponseEntity<Void> eliminarCuenta(@PathVariable Long id) {
         cuentaBancariaService.eliminar(id); // hay que agregar este método en el service
         return ResponseEntity.noContent().build();
