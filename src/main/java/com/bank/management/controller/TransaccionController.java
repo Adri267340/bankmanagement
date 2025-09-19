@@ -20,6 +20,7 @@ public class TransaccionController {
     }
 
     @PostMapping
+    @Operation(summary = "Crear transaccion")
     public ResponseEntity<TransaccionResponseDTO> crearTransaccion(@RequestBody TransaccionRequestDTO dto) {
         return ResponseEntity.ok(transaccionService.crear(dto));
     }
@@ -31,12 +32,14 @@ public class TransaccionController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener transaccion por numero de id")
     public ResponseEntity<TransaccionResponseDTO> obtenerPorId(@PathVariable Long id) {
         TransaccionResponseDTO transaccion = transaccionService.obtenerPorId(id);
         return (transaccion != null) ? ResponseEntity.ok(transaccion) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar transaccion")
     public ResponseEntity<Void> eliminarTransaccion(@PathVariable Long id) {
         transaccionService.eliminar(id); // hay que agregar este método en el service
         return ResponseEntity.noContent().build();
