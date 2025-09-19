@@ -35,3 +35,39 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### Gradle ###
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+### IntelliJ IDEA ###
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+classes/
+
+### Logs ###
+*.log
+
+### OS ###
+.DS_Store
+Thumbs.db
+
+### Java ###
+*.class
+*.jar
+*.war
+*.ear
+
+### Generated files ###
+bin/
+target/
+
+### Spring Boot ###
+# Evita subir archivos de configuración locales
+application-*.yml
+application-*.yaml
+application-*.properties

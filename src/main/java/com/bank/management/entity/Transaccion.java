@@ -5,7 +5,6 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Entity
@@ -16,7 +15,6 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @ToString
 @EqualsAndHashCode(onlyExplicitlyIncluded = true)
-
 public class Transaccion {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,7 +27,7 @@ public class Transaccion {
     private BigDecimal monto;
 
     @NotBlank(message = "El tipo de transaccion es obligatorio")
-    @Pattern(regexp = "DEPOSITO|RETIRO", message = "El tipo debe ser DEPSITO o RETIRO")
+    @Pattern(regexp = "DEPOSITO|RETIRO", message = "El tipo debe ser DEPOSITO o RETIRO")
     @Column(nullable = false, length = 10)
     private String tipo;
 

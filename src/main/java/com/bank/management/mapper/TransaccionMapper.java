@@ -9,11 +9,10 @@ import org.mapstruct.Mapping;
 @Mapper(componentModel = "spring")
 public interface TransaccionMapper {
 
-    // DTO Entity
     @Mapping(source = "cuentaId", target = "cuenta.id")
     Transaccion toEntity(TransaccionRequestDTO dto);
 
-    // Entity DTO
     @Mapping(source = "cuenta.id", target = "cuentaId")
     TransaccionResponseDTO toDto(Transaccion transaccion);
 }
+

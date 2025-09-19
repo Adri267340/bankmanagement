@@ -20,6 +20,7 @@ public class UsuarioController {
     }
 
     @PostMapping
+    @Operation(summary = "Crear cuenta de usuario")
     public ResponseEntity<UsuarioResponseDTO> crearUsuario(@RequestBody UsuarioRequestDTO dto) {
         return ResponseEntity.ok(usuarioService.guardar(dto));
     }
@@ -31,14 +32,16 @@ public class UsuarioController {
     }
 
     @GetMapping("/{id}")
+    @Operation(summary = "Obtener usuario por id")
     public ResponseEntity<UsuarioResponseDTO> obtenerPorId(@PathVariable Long id) {
         UsuarioResponseDTO usuario = usuarioService.obtenerPorId(id);
         return (usuario != null) ? ResponseEntity.ok(usuario) : ResponseEntity.notFound().build();
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Eliminar usuario")
     public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
-        usuarioService.eliminar(id); // hay que agregar este método en el service
+        usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 }

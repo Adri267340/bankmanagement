@@ -5,10 +5,10 @@ import io.swagger.v3.oas.models.info.Info;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-@Configuration  // <- dice a Spring que esta clase es de configuración
+@Configuration  // Le dice a Spring que esta clase es de configurar
 public class SwaggerConfig {
 
-    @Bean  // <- expone un objeto que Spring maneja
+    @Bean  // para exponer un objeto que Spring maneja
     public OpenAPI customOpenAPI() {
         return new OpenAPI()
                 .info(new Info()

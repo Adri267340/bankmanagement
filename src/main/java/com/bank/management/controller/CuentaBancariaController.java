@@ -43,7 +43,7 @@ public class CuentaBancariaController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar cuenta")
     public ResponseEntity<Void> eliminarCuenta(@PathVariable Long id) {
-        cuentaBancariaService.eliminar(id); // hay que agregar este método en el service
+        cuentaBancariaService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 }

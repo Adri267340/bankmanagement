@@ -2,31 +2,77 @@ package com.bank.management.service;
 
 import com.bank.management.dto.TransaccionRequestDTO;
 import com.bank.management.dto.TransaccionResponseDTO;
+import com.bank.management.entity.CuentaBancaria;
 import com.bank.management.entity.Transaccion;
 import com.bank.management.mapper.TransaccionMapper;
+import com.bank.management.repository.CuentaBancariaRepository;
 import com.bank.management.repository.TransaccionRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.server.ResponseStatusException;
 
+import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Locale;
 import java.util.stream.Collectors;
 
 @Service
 public class TransaccionServiceImpl implements TransaccionService {
 
     private final TransaccionRepository transaccionRepository;
+    private final CuentaBancariaRepository cuentaBancariaRepository;
     private final TransaccionMapper transaccionMapper;
 
     public TransaccionServiceImpl(TransaccionRepository transaccionRepository,
+                                  CuentaBancariaRepository cuentaBancariaRepository,
                                   TransaccionMapper transaccionMapper) {
         this.transaccionRepository = transaccionRepository;
+        this.cuentaBancariaRepository = cuentaBancariaRepository;
         this.transaccionMapper = transaccionMapper;
     }
 
     @Override
+    @Transactional
     public TransaccionResponseDTO crear(TransaccionRequestDTO dto) {
-        Transaccion entidad = transaccionMapper.toEntity(dto);
-        entidad = transaccionRepository.save(entidad);
-        return transaccionMapper.toDto(entidad);
+        if (dto == null) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Body de la petición es obligatorio");
+        }
+        // Buscar la cuenta (gestión -> entidad 'cuenta' administrada por JPA)
+        CuentaBancaria cuenta = cuentaBancariaRepository.findById(dto.getCuentaId())
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cuenta no encontrada"));
+
+        // Normalizar tipo
+        String tipo = dto.getTipo().trim().toUpperCase(Locale.ROOT);
+
+        // Validar tipo permitido
+        if (!"DEPOSITO".equals(tipo) && !"RETIRO".equals(tipo)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo inválido: use DEPOSITO o RETIRO");
+        }
+
+        // Lógica de negocio: actualizar saldo
+        if ("DEPOSITO".equals(tipo)) {
+            cuenta.setSaldo(cuenta.getSaldo().add(dto.getMonto()));
+        } else { // RETIRO
+            if (cuenta.getSaldo().compareTo(dto.getMonto()) < 0) {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Saldo insuficiente para el retiro");
+            }
+            cuenta.setSaldo(cuenta.getSaldo().subtract(dto.getMonto()));
+        }
+
+        // Guardar cuenta actualizada primero (para mantener integridad)
+        cuentaBancariaRepository.save(cuenta);
+
+        // Crear y guardar transacción
+        Transaccion transaccion = new Transaccion();
+        transaccion.setMonto(dto.getMonto());
+        transaccion.setTipo(tipo);
+        transaccion.setFecha(LocalDateTime.now());
+        transaccion.setCuenta(cuenta);
+
+        Transaccion saved = transaccionRepository.save(transaccion);
+
+        return transaccionMapper.toDto(saved);
     }
 
     @Override
@@ -48,5 +94,4 @@ public class TransaccionServiceImpl implements TransaccionService {
     public void eliminar(Long id) {
         transaccionRepository.deleteById(id);
     }
-
 }

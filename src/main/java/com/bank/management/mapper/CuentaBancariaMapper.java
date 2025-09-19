@@ -12,8 +12,8 @@ public class CuentaBancariaMapper {
 
     public CuentaBancaria toEntity(Usuario usuario) {
         CuentaBancaria cuenta = new CuentaBancaria();
-        cuenta.setSaldo(BigDecimal.ZERO); // saldo inicial en 0
-        cuenta.setUsuario(usuario); // asignamos el usuario dueño de la cuenta
+        cuenta.setSaldo(BigDecimal.ZERO);
+        cuenta.setUsuario(usuario);
         return cuenta;
     }
 

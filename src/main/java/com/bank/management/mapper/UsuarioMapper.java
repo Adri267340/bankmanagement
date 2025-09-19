@@ -12,10 +12,8 @@ public interface UsuarioMapper {
 
     UsuarioMapper INSTANCE = Mappers.getMapper(UsuarioMapper.class);
 
-    // De DTO a entidad
     Usuario toEntity(UsuarioRequestDTO dto);
 
-    // De entidad a DTO
     UsuarioResponseDTO toDto(Usuario entity);
 }
 

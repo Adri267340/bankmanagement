@@ -41,7 +41,7 @@ public class TransaccionController {
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar transaccion")
     public ResponseEntity<Void> eliminarTransaccion(@PathVariable Long id) {
-        transaccionService.eliminar(id); // hay que agregar este método en el service
+        transaccionService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
 }

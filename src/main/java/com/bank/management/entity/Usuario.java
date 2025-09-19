@@ -28,8 +28,8 @@ public class Usuario {
     private String nombre;
 
     @NotBlank(message = "El email es obligatorio")
+    @Email(message = "El formato del correo no es válido")
     @Column(nullable = false, unique = true)
-    @NotBlank(message = "El correo no debe estar vacio")
     private String email;
 
     @NotBlank(message = "La contraseña es obligatoria")
