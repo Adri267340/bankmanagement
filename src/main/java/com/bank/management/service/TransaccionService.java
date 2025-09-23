@@ -9,6 +9,7 @@ public interface TransaccionService {
     TransaccionResponseDTO crear(TransaccionRequestDTO dto);
     List<TransaccionResponseDTO> obtenerTodos();
     TransaccionResponseDTO obtenerPorId(Long id);
+    TransaccionResponseDTO actualizarTransaccion(Long id, TransaccionRequestDTO dto);
     void eliminar(Long id);
 }
 
