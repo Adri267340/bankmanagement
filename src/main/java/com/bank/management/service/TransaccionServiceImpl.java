@@ -38,19 +38,16 @@ public class TransaccionServiceImpl implements TransaccionService {
         if (dto == null) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Body de la petición es obligatorio");
         }
-        // Buscar la cuenta (gestión -> entidad 'cuenta' administrada por JPA)
+
         CuentaBancaria cuenta = cuentaBancariaRepository.findById(dto.getCuentaId())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Cuenta no encontrada"));
 
-        // Normalizar tipo
         String tipo = dto.getTipo().trim().toUpperCase(Locale.ROOT);
 
-        // Validar tipo permitido
         if (!"DEPOSITO".equals(tipo) && !"RETIRO".equals(tipo)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Tipo inválido: use DEPOSITO o RETIRO");
         }
 
-        // Lógica de negocio: actualizar saldo
         if ("DEPOSITO".equals(tipo)) {
             cuenta.setSaldo(cuenta.getSaldo().add(dto.getMonto()));
         } else { // RETIRO
@@ -60,10 +57,8 @@ public class TransaccionServiceImpl implements TransaccionService {
             cuenta.setSaldo(cuenta.getSaldo().subtract(dto.getMonto()));
         }
 
-        // Guardar cuenta actualizada primero (para mantener integridad)
         cuentaBancariaRepository.save(cuenta);
 
-        // Crear y guardar transacción
         Transaccion transaccion = new Transaccion();
         transaccion.setMonto(dto.getMonto());
         transaccion.setTipo(tipo);
@@ -93,5 +88,14 @@ public class TransaccionServiceImpl implements TransaccionService {
     @Override
     public void eliminar(Long id) {
         transaccionRepository.deleteById(id);
+    }
+
+    @Override
+    public TransaccionResponseDTO actualizarTransaccion(Long id, TransaccionRequestDTO dto) {
+        Transaccion existente = transaccionRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Transacción no encontrada con id: " + id));
+        transaccionMapper.updateEntity(dto, existente);
+        Transaccion actualizada = transaccionRepository.save(existente);
+        return transaccionMapper.toDto(actualizada);
     }
 }
