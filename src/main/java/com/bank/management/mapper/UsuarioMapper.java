@@ -5,15 +5,15 @@ import com.bank.management.dto.UsuarioResponseDTO;
 import com.bank.management.entity.Usuario;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 import org.mapstruct.factory.Mappers;
 
 @Mapper(componentModel = "spring")
 public interface UsuarioMapper {
 
-    UsuarioMapper INSTANCE = Mappers.getMapper(UsuarioMapper.class);
-
     Usuario toEntity(UsuarioRequestDTO dto);
-
     UsuarioResponseDTO toDto(Usuario entity);
+    void updateEntityFromDto(UsuarioRequestDTO dto, @MappingTarget Usuario entity);//añadi hoy
+
 }
 
