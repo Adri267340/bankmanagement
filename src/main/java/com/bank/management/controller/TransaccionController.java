@@ -44,5 +44,15 @@ public class TransaccionController {
         transaccionService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar tarnsaccion")
+    public ResponseEntity<TransaccionResponseDTO> actualizarTransaccion(
+            @PathVariable Long id,
+            @RequestBody TransaccionRequestDTO dto) {
+        TransaccionResponseDTO actualizado = transaccionService.actualizarTransaccion(id, dto);
+        return ResponseEntity.ok(actualizado);
+
+    }
 }
 
