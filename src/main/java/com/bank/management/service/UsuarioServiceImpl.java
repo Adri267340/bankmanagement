@@ -43,6 +43,15 @@ public class UsuarioServiceImpl implements UsuarioService {
     }
 
     @Override
+    public UsuarioResponseDTO actualizarUsuario(Long id, UsuarioRequestDTO dto) {
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        usuarioMapper.updateEntityFromDto(dto, existente);
+        Usuario actualizado = usuarioRepository.save(existente);
+
+        return usuarioMapper.toDto(actualizado);
+    } //añadi hoy
+    @Override
     public void eliminar(Long id) {
         usuarioRepository.deleteById(id);
     }
