@@ -44,4 +44,13 @@ public class UsuarioController {
         usuarioService.eliminar(id);
         return ResponseEntity.noContent().build();
     }
+
+    @PutMapping("/{id}")
+    @Operation(summary = "Actualizar usuario")
+    public ResponseEntity<UsuarioResponseDTO> actualizarUsuario(
+            @PathVariable Long id,
+            @RequestBody UsuarioRequestDTO dto) {
+        UsuarioResponseDTO actualizado = usuarioService.actualizarUsuario(id, dto);
+        return ResponseEntity.ok(actualizado);//añadi hoy
+    }
 }
