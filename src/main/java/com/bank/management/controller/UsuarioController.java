@@ -1,11 +1,14 @@
 package com.bank.management.controller;
 
+import com.bank.management.dto.MessageResponseDTO;
 import com.bank.management.dto.UsuarioRequestDTO;
 import com.bank.management.dto.UsuarioResponseDTO;
 import com.bank.management.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
 
 import java.util.List;
 
@@ -21,7 +24,7 @@ public class UsuarioController {
 
     @PostMapping
     @Operation(summary = "Crear cuenta de usuario")
-    public ResponseEntity<UsuarioResponseDTO> crearUsuario(@RequestBody UsuarioRequestDTO dto) {
+    public ResponseEntity<UsuarioResponseDTO> crearUsuario(@Valid @RequestBody UsuarioRequestDTO dto) {
         return ResponseEntity.ok(usuarioService.guardar(dto));
     }
 
@@ -35,21 +38,22 @@ public class UsuarioController {
     @Operation(summary = "Obtener usuario por id")
     public ResponseEntity<UsuarioResponseDTO> obtenerPorId(@PathVariable Long id) {
         UsuarioResponseDTO usuario = usuarioService.obtenerPorId(id);
-        return (usuario != null) ? ResponseEntity.ok(usuario) : ResponseEntity.notFound().build();
+        return ResponseEntity.ok(usuario);
     }
 
     @DeleteMapping("/{id}")
     @Operation(summary = "Eliminar usuario")
-    public ResponseEntity<Void> eliminarUsuario(@PathVariable Long id) {
-        usuarioService.eliminar(id);
-        return ResponseEntity.noContent().build();
+    public ResponseEntity<MessageResponseDTO> eliminarUsuario(@PathVariable Long id) {
+        MessageResponseDTO response = usuarioService.eliminar(id);
+        return ResponseEntity.ok(response);
     }
+
 
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar usuario")
     public ResponseEntity<UsuarioResponseDTO> actualizarUsuario(
             @PathVariable Long id,
-            @RequestBody UsuarioRequestDTO dto) {
+            @Valid @RequestBody UsuarioRequestDTO dto) {
         UsuarioResponseDTO actualizado = usuarioService.actualizarUsuario(id, dto);
         return ResponseEntity.ok(actualizado);//añadi hoy
     }

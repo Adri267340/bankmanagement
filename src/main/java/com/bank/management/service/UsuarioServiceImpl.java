@@ -1,11 +1,14 @@
 package com.bank.management.service;
 
+import com.bank.management.dto.MessageResponseDTO;
 import com.bank.management.dto.UsuarioRequestDTO;
 import com.bank.management.dto.UsuarioResponseDTO;
 import com.bank.management.entity.Usuario;
 import com.bank.management.mapper.UsuarioMapper;
 import com.bank.management.repository.UsuarioRepository;
 import org.springframework.stereotype.Service;
+import com.bank.management.exception.UsuarioNotFoundException;
+import com.bank.management.exception.DuplicatedDataException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -23,37 +26,50 @@ public class UsuarioServiceImpl implements UsuarioService {
 
     @Override
     public UsuarioResponseDTO guardar(UsuarioRequestDTO dto) {
+        if (usuarioRepository.existsByEmail(dto.getEmail())) {
+            throw new DuplicatedDataException("Usuario", dto.getEmail());
+
+    }
         Usuario usuario = usuarioMapper.toEntity(dto);
-        return usuarioMapper.toDto(usuarioRepository.save(usuario));
+        return usuarioMapper.toResponseDto(usuarioRepository.save(usuario));
     }
 
     @Override
     public List<UsuarioResponseDTO> obtenerTodos() {
         return usuarioRepository.findAll()
                 .stream()
-                .map(usuarioMapper::toDto)
+                .map(usuarioMapper::toResponseDto)
                 .collect(Collectors.toList());
     }
 
     @Override
     public UsuarioResponseDTO obtenerPorId(Long id) {
         return usuarioRepository.findById(id)
-                .map(usuarioMapper::toDto)
-                .orElse(null);
+                .map(usuarioMapper::toResponseDto)
+                .orElseThrow(() -> new UsuarioNotFoundException(id));
     }
 
     @Override
     public UsuarioResponseDTO actualizarUsuario(Long id, UsuarioRequestDTO dto) {
         Usuario existente = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+                .orElseThrow(() -> new UsuarioNotFoundException(id));
         usuarioMapper.updateEntityFromDto(dto, existente);
         Usuario actualizado = usuarioRepository.save(existente);
 
-        return usuarioMapper.toDto(actualizado);
-    } //añadi hoy
-    @Override
-    public void eliminar(Long id) {
-        usuarioRepository.deleteById(id);
+        return usuarioMapper.toResponseDto(actualizado);
     }
 
+
+    @Override
+    public MessageResponseDTO eliminar(Long id) {
+        Usuario existente = usuarioRepository.findById(id)
+                .orElseThrow(() -> new UsuarioNotFoundException(id));
+        usuarioRepository.delete(existente);
+
+        return new MessageResponseDTO("Usuario con id " + id + " eliminado exitosamente", id);
+    }
+
+
+
 }
+

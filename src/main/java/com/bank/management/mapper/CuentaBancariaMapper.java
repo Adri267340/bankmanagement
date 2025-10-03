@@ -1,29 +1,26 @@
 package com.bank.management.mapper;
 
+import com.bank.management.dto.CuentaRequestDTO;
 import com.bank.management.dto.CuentaResponseDTO;
 import com.bank.management.entity.CuentaBancaria;
-import com.bank.management.entity.Usuario;
-import org.springframework.stereotype.Component;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+import org.mapstruct.MappingTarget;
 
-import java.math.BigDecimal;
+import java.lang.annotation.Target;
 
-@Component
-public class CuentaBancariaMapper {
 
-    public CuentaBancaria toEntity(Usuario usuario) {
-        CuentaBancaria cuenta = new CuentaBancaria();
-        cuenta.setSaldo(BigDecimal.ZERO);
-        cuenta.setUsuario(usuario);
-        return cuenta;
-    }
+@Mapper(componentModel = "spring")
+public interface CuentaBancariaMapper {
 
-    public CuentaResponseDTO toDto(CuentaBancaria cuenta) {
-        CuentaResponseDTO dto = new CuentaResponseDTO();
-        dto.setId(cuenta.getId());
-        dto.setSaldo(cuenta.getSaldo() != null ? cuenta.getSaldo() : BigDecimal.ZERO);
-        if (cuenta.getUsuario() != null) {
-            dto.setUsuarioId(cuenta.getUsuario().getId());
-        }
-        return dto;
-    }
+    @Mapping(source = "usuario.id", target = "usuarioId")
+    CuentaResponseDTO toDto(CuentaBancaria cuenta);
+
+    @Mapping(source = "usuarioId", target = "usuario.id")
+    CuentaBancaria toEntity(CuentaRequestDTO dto);
+
+    @Mapping(target="id",ignore = true)
+    void updateEntity(CuentaRequestDTO dto, @MappingTarget CuentaBancaria cuenta);
 }
+
+

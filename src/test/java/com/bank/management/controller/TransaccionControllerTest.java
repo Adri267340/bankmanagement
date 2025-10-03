@@ -13,6 +13,7 @@ import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 
+
 import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -32,10 +33,11 @@ class TransaccionControllerTest {
         mockMvc = MockMvcBuilders.standaloneSetup(controller).build();
         objectMapper = new ObjectMapper();
     }
+    //Caso exitoso: crear-transaccion
 
     @Test
     void crearTransaccion_success() throws Exception {
-        //1. Datos de entrada y salida
+
         TransaccionRequestDTO request = new TransaccionRequestDTO();
         request.setCuentaId(1L);
         request.setMonto(new BigDecimal("500.00"));
@@ -47,11 +49,9 @@ class TransaccionControllerTest {
         response.setMonto(new BigDecimal("500.00"));
         response.setTipo("DEPOSITO");
 
-        //2. Mock
         Mockito.when(transaccionService.crear(Mockito.any(TransaccionRequestDTO.class)))
                 .thenReturn(response);
 
-        //3 y 4. Llamar y verificar
         mockMvc.perform(post("/api/transacciones")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(objectMapper.writeValueAsString(request)))
@@ -60,7 +60,30 @@ class TransaccionControllerTest {
                 .andExpect(jsonPath("$.monto").value(500.00))
                 .andExpect(jsonPath("$.tipo").value("DEPOSITO"));
 
-        //5. Verificar interacción
         Mockito.verify(transaccionService).crear(Mockito.any(TransaccionRequestDTO.class));
     }
+
+    //Caso fallido  transaccion tipo invalida
+    @Test
+    void crearTransaccion_tipoInvalido_fail() throws Exception {
+
+        TransaccionRequestDTO request = new TransaccionRequestDTO();
+        request.setCuentaId(1L);
+        request.setMonto(new BigDecimal("100.00"));
+        request.setTipo("TRANSFERENCIA");
+
+        Mockito.when(transaccionService.crear(Mockito.any(TransaccionRequestDTO.class)))
+                .thenThrow(new org.springframework.web.server.ResponseStatusException(
+                        org.springframework.http.HttpStatus.BAD_REQUEST,
+                        "Tipo inválido: use DEPOSITO o RETIRO"
+                ));
+
+        mockMvc.perform(post("/api/transacciones")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(request)))
+                .andExpect(status().isBadRequest());
+
+        Mockito.verify(transaccionService).crear(Mockito.any(TransaccionRequestDTO.class));
+    }
+
 }

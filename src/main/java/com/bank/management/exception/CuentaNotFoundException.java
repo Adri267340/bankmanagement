@@ -8,6 +8,7 @@ public class CuentaNotFoundException extends RuntimeException {
         this.cuentaId = cuentaId;
     }
 
-    public Long getCuentaId() { return cuentaId; }
+    public Long getCuentaId() {
+        return cuentaId; }
 }
 

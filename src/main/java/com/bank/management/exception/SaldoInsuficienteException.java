@@ -1,7 +1,10 @@
 package com.bank.management.exception;
 
-import java.math.BigDecimal;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.ResponseStatus;
 
+import java.math.BigDecimal;
+@ResponseStatus(HttpStatus.BAD_REQUEST)
 public class SaldoInsuficienteException extends RuntimeException {
     private final BigDecimal saldoDisponible;
     private final BigDecimal montoSolicitado;

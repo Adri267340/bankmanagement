@@ -6,6 +6,7 @@ import com.bank.management.service.TransaccionService;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import com.bank.management.dto.MessageResponseDTO;
 
 import java.util.List;
 
@@ -39,11 +40,19 @@ public class TransaccionController {
     }
 
     @DeleteMapping("/{id}")
-    @Operation(summary = "Eliminar transaccion")
-    public ResponseEntity<Void> eliminarTransaccion(@PathVariable Long id) {
+    @Operation(summary = "Eliminar transacción")
+    public ResponseEntity<MessageResponseDTO> eliminarTransaccion(@PathVariable Long id) {
         transaccionService.eliminar(id);
-        return ResponseEntity.noContent().build();
+
+        MessageResponseDTO response = new MessageResponseDTO(
+                "Transacción eliminada con éxito", id
+        );
+
+        return ResponseEntity.ok(response);
     }
+
+
+
 
     @PutMapping("/{id}")
     @Operation(summary = "Actualizar tarnsaccion")

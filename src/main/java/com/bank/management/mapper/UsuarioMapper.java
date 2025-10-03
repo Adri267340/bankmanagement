@@ -12,8 +12,7 @@ import org.mapstruct.factory.Mappers;
 public interface UsuarioMapper {
 
     Usuario toEntity(UsuarioRequestDTO dto);
-    UsuarioResponseDTO toDto(Usuario entity);
+    UsuarioResponseDTO toResponseDto(Usuario usuario);
     void updateEntityFromDto(UsuarioRequestDTO dto, @MappingTarget Usuario entity);//añadi hoy
-
 }
 

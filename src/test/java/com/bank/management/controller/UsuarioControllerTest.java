@@ -14,6 +14,7 @@ import static org.mockito.Mockito.when;
 import static org.mockito.ArgumentMatchers.anyLong;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.setup.MockMvcBuilders.standaloneSetup;
 
 @WebMvcTest(UsuarioController.class)
 class UsuarioControllerTest {
@@ -24,7 +25,8 @@ class UsuarioControllerTest {
     @MockBean
     private UsuarioService usuarioService;
 
-    // ✅ Caso exitoso: usuario encontrado
+    // Caso exitoso: usuario-encontrado
+
     @Test
     void obtenerUsuarioPorId_Exitoso() throws Exception {
         UsuarioResponseDTO dto = new UsuarioResponseDTO();
@@ -40,18 +42,19 @@ class UsuarioControllerTest {
                 .andExpect(jsonPath("$.nombre").value("Juan Pérez"));
     }
 
-    // ❌ Caso fallido: usuario no existe
+    // Caso fallido: usuario no existe
+
     @Test
     void obtenerUsuarioPorId_NoEncontrado() throws Exception {
         when(usuarioService.obtenerPorId(anyLong()))
-                .thenThrow(new UsuarioNotFoundException(99L)); // 🔹 Cambié RuntimeException → UsuarioNotFoundException
+                .thenThrow(new UsuarioNotFoundException(99L));
 
         mockMvc.perform(get("/api/usuarios/99")
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())                 // 🔹 Ahora sí debe devolver 404
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
                 .andExpect(jsonPath("$.error").value("Usuario no encontrado"))
-                .andExpect(jsonPath("$.message").value("Usuario con id 99 no encontrado")); // 🔹 Mensaje real
+                .andExpect(jsonPath("$.message").value("Usuario con id 99 no encontrado"));
     }
 }
 

@@ -4,147 +4,298 @@ import com.bank.management.dto.CuentaRequestDTO;
 import com.bank.management.dto.CuentaResponseDTO;
 import com.bank.management.entity.CuentaBancaria;
 import com.bank.management.entity.Usuario;
+import com.bank.management.exception.CuentaNotFoundException;
+import com.bank.management.exception.SaldoInsuficienteException;
 import com.bank.management.exception.UsuarioNotFoundException;
 import com.bank.management.mapper.CuentaBancariaMapper;
 import com.bank.management.repository.CuentaBancariaRepository;
 import com.bank.management.repository.UsuarioRepository;
-import com.bank.management.service.CuentaBancariaService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.Mockito;
+import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.util.ArrayList;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
 
 @ExtendWith(MockitoExtension.class)
 class CuentaBancariaServiceImplTest {
 
     @Mock
-    private CuentaBancariaRepository cuentaBancariaRepository;
+    private CuentaBancariaRepository cuentaRepository;
+
     @Mock
     private UsuarioRepository usuarioRepository;
-    @Mock
-    private CuentaBancariaMapper cuentaBancariaMapper;
 
-    private CuentaBancariaService cuentaBancariaService;
-    private CuentaBancaria cuentaTest;
-    private Usuario usuarioTest;
+    @Mock
+    private CuentaBancariaMapper mapper;
+
+    private CuentaBancariaServiceImpl service;
+
+    private Usuario usuario;
+    private CuentaBancaria cuentaEntity;
 
     @BeforeEach
     void setUp() {
-        cuentaBancariaService = new CuentaBancariaServiceImpl(
-                cuentaBancariaRepository,
-                cuentaBancariaMapper,
-                usuarioRepository
-        );
+        service = new CuentaBancariaServiceImpl(cuentaRepository, mapper, usuarioRepository);
 
-        usuarioTest = new Usuario();
-        usuarioTest.setId(1L);
-        usuarioTest.setNombre("Adriana");
+        usuario = new Usuario();
+        usuario.setId(1L);
+        usuario.setNombre("Prueba");
 
-        cuentaTest = new CuentaBancaria();
-        cuentaTest.setId(1L);
-        cuentaTest.setUsuario(usuarioTest);
-        cuentaTest.setSaldo(java.math.BigDecimal.valueOf(1000));
-        cuentaTest.setNumeroCuenta("123456789012");
+        cuentaEntity = new CuentaBancaria();
+        cuentaEntity.setId(10L);
+        cuentaEntity.setNumeroCuenta("NUM-" + UUID.randomUUID().toString().substring(0,8));
+        cuentaEntity.setSaldo(BigDecimal.valueOf(1000));
+        cuentaEntity.setTipoCuenta("AHORRO");
+        cuentaEntity.setUsuario(usuario);
     }
 
-    //Guardar
+    //Guardar Caso Exitoso
     @Test
     void guardar_successful() {
-        CuentaRequestDTO request = new CuentaRequestDTO();
-        request.setUsuarioId(1L);
+        // 1. Datos de entrada
+        CuentaRequestDTO req = new CuentaRequestDTO();
+        req.setUsuarioId(usuario.getId());
+        req.setTipoCuenta("AHORRO");
+        req.setSaldoInicial(BigDecimal.valueOf(500));
 
-        CuentaResponseDTO response = new CuentaResponseDTO();
-        response.setId(1L);
+        // 2. Mocks
+        when(usuarioRepository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
+        lenient().when(mapper.toEntity(any(CuentaRequestDTO.class))).thenAnswer(inv -> {
+            CuentaBancaria c = new CuentaBancaria();
+            c.setTipoCuenta(req.getTipoCuenta());
+            c.setSaldo(req.getSaldoInicial());
+            return c;
+        });
+        when(cuentaRepository.save(any(CuentaBancaria.class))).thenAnswer(inv -> {
+            CuentaBancaria c = inv.getArgument(0);
+            c.setId(100L);
+            return c;
+        });
+        when(mapper.toDto(any(CuentaBancaria.class))).thenAnswer(inv -> {
+            CuentaBancaria c = inv.getArgument(0);
+            CuentaResponseDTO dto = new CuentaResponseDTO();
+            dto.setId(c.getId());
+            dto.setSaldo(c.getSaldo());
+            dto.setUsuarioId(c.getUsuario() != null ? c.getUsuario().getId() : req.getUsuarioId());
+            return dto;
+        });
 
-        Mockito.when(usuarioRepository.findById(1L)).thenReturn(Optional.of(usuarioTest));
-        Mockito.when(cuentaBancariaMapper.toEntity(any(CuentaRequestDTO.class))).thenReturn(cuentaTest);
-        Mockito.when(cuentaBancariaRepository.existsByNumeroCuenta(any(String.class))).thenReturn(false);
-        Mockito.when(cuentaBancariaRepository.save(any(CuentaBancaria.class))).thenReturn(cuentaTest);
-        Mockito.when(cuentaBancariaMapper.toDto(any(CuentaBancaria.class))).thenReturn(response);
+        // 3. Llamada al método
+        CuentaResponseDTO result = service.guardarCuenta(req);
 
-        var result = cuentaBancariaService.guardar(request);
-
+        // 4. Verificaciones de resultado
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        Mockito.verify(usuarioRepository).findById(1L);
-        Mockito.verify(cuentaBancariaRepository).save(any(CuentaBancaria.class));
+        assertEquals(100L, result.getId().longValue());
+        assertEquals(req.getSaldoInicial(), result.getSaldo());
+
+        // 5. Verificar interacciones
+        verify(usuarioRepository).findById(usuario.getId());
+        verify(cuentaRepository).save(any(CuentaBancaria.class));
+        verify(mapper).toDto(any(CuentaBancaria.class));
     }
 
-    //Guardar fallido
+    //Guardar Caso fallido
     @Test
     void guardar_failed_usuarioNoExiste() {
-        CuentaRequestDTO request = new CuentaRequestDTO();
-        request.setUsuarioId(99L);
+        CuentaRequestDTO req = new CuentaRequestDTO();
+        req.setUsuarioId(999L);
+        req.setTipoCuenta("CORRIENTE");
+        req.setSaldoInicial(BigDecimal.valueOf(0));
 
-        Mockito.when(usuarioRepository.findById(99L)).thenReturn(Optional.empty());
+        when(usuarioRepository.findById(999L)).thenReturn(Optional.empty());
 
-        assertThrows(UsuarioNotFoundException.class, () -> cuentaBancariaService.guardar(request));
-        Mockito.verify(usuarioRepository).findById(99L);
+        assertThrows(UsuarioNotFoundException.class, () -> service.guardarCuenta(req));
+
+        verify(usuarioRepository).findById(999L);
+        verifyNoInteractions(cuentaRepository);
     }
 
-    // obtener por ID
-    @Test
-    void obtenerPorId_successful() {
-        CuentaResponseDTO response = new CuentaResponseDTO();
-        response.setId(1L);
-
-        Mockito.when(cuentaBancariaRepository.findById(1L)).thenReturn(Optional.of(cuentaTest));
-        Mockito.when(cuentaBancariaMapper.toDto(any(CuentaBancaria.class))).thenReturn(response);
-
-        var result = cuentaBancariaService.obtenerPorId(1L);
-
-        assertNotNull(result);
-        assertEquals(1L, result.getId());
-        Mockito.verify(cuentaBancariaRepository).findById(1L);
-        Mockito.verify(cuentaBancariaMapper).toDto(any(CuentaBancaria.class));
-    }
-
-    //obtener fallida
-    @Test
-    void obtenerPorId_failed_noExiste() {
-        Mockito.when(cuentaBancariaRepository.findById(2L)).thenReturn(Optional.empty());
-
-        var result = cuentaBancariaService.obtenerPorId(2L);
-
-        assertNull(result);
-        Mockito.verify(cuentaBancariaRepository).findById(2L);
-    }
-
-    // Obtener todas
+   //Obtener todos Caso exitoso
     @Test
     void obtenerTodas_successful() {
-        CuentaResponseDTO response = new CuentaResponseDTO();
-        response.setId(1L);
+        // 1. Datos no necesarios de entrada
+        // 2. Mocks: repo devuelve lista con dos entidades
+        CuentaBancaria c2 = new CuentaBancaria();
+        c2.setId(11L);
+        c2.setSaldo(BigDecimal.valueOf(200));
+        c2.setUsuario(usuario);
 
-        Mockito.when(cuentaBancariaRepository.findAll()).thenReturn(List.of(cuentaTest, cuentaTest));
-        Mockito.when(cuentaBancariaMapper.toDto(any(CuentaBancaria.class))).thenReturn(response);
+        when(cuentaRepository.findAll()).thenReturn(List.of(cuentaEntity, c2));
+        when(mapper.toDto(any(CuentaBancaria.class))).thenAnswer(inv -> {
+            CuentaBancaria c = inv.getArgument(0);
+            CuentaResponseDTO dto = new CuentaResponseDTO();
+            dto.setId(c.getId());
+            dto.setSaldo(c.getSaldo());
+            dto.setUsuarioId(c.getUsuario().getId());
+            return dto;
+        });
 
-        var result = cuentaBancariaService.obtenerTodas();
+        // 3. Llamada
+        var lista = service.obtenerTodas();
 
-        assertEquals(2, result.size());
-        Mockito.verify(cuentaBancariaRepository).findAll();
-        Mockito.verify(cuentaBancariaMapper, Mockito.times(2)).toDto(any(CuentaBancaria.class));
+        // 4. Verificaciones
+        assertNotNull(lista);
+        assertEquals(2, lista.size());
+
+        // 5. Interacciones
+        verify(cuentaRepository).findAll();
+        verify(mapper, times(2)).toDto(any(CuentaBancaria.class));
     }
 
-    //obrener todas fallido
+    //Obtener por id Caso exitoso
     @Test
-    void obtenerTodas_failed_vacia() {
-        Mockito.when(cuentaBancariaRepository.findAll()).thenReturn(new ArrayList<>());
+    void obtenerPorId_successful() {
+        when(cuentaRepository.findById(10L)).thenReturn(Optional.of(cuentaEntity));
+        when(mapper.toDto(any(CuentaBancaria.class))).thenAnswer(inv -> {
+            CuentaBancaria c = inv.getArgument(0);
+            CuentaResponseDTO dto = new CuentaResponseDTO();
+            dto.setId(c.getId());
+            dto.setSaldo(c.getSaldo());
+            dto.setUsuarioId(c.getUsuario().getId());
+            return dto;
+        });
 
-        var result = cuentaBancariaService.obtenerTodas();
+        CuentaResponseDTO dto = service.obtenerPorId(10L);
 
-        assertEquals(0, result.size());
-        Mockito.verify(cuentaBancariaRepository).findAll();
-        Mockito.verifyNoMoreInteractions(cuentaBancariaMapper);
+        assertNotNull(dto);
+        assertEquals(10L, dto.getId().longValue());
+        verify(cuentaRepository).findById(10L);
+        verify(mapper).toDto(any(CuentaBancaria.class));
+    }
+
+    //Obtener Caso fallido
+    @Test
+    void obtenerPorId_failed_notFound() {
+        when(cuentaRepository.findById(99L)).thenReturn(Optional.empty());
+
+        assertThrows(CuentaNotFoundException.class, () -> service.obtenerPorId(99L));
+
+        verify(cuentaRepository).findById(99L);
+        verifyNoMoreInteractions(mapper);
+    }
+
+    //Actualizar caso exitoso
+    @Test
+    void actualizar_successful() {
+        // 1. Datos de entrada
+        CuentaRequestDTO req = new CuentaRequestDTO();
+        req.setUsuarioId(usuario.getId());
+        req.setTipoCuenta("CORRIENTE");
+        req.setSaldoInicial(BigDecimal.valueOf(300));
+
+        // 2. Mocks
+        CuentaBancaria existente = new CuentaBancaria();
+        existente.setId(10L);
+        existente.setSaldo(BigDecimal.valueOf(100));
+        existente.setUsuario(usuario);
+        when(cuentaRepository.findById(10L)).thenReturn(Optional.of(existente));
+
+        when(usuarioRepository.findById(usuario.getId())).thenReturn(Optional.of(usuario));
+        doAnswer(inv -> {
+            CuentaRequestDTO dto = inv.getArgument(0);
+            CuentaBancaria ent = inv.getArgument(1);
+            ent.setTipoCuenta(dto.getTipoCuenta());
+            ent.setSaldo(dto.getSaldoInicial());
+            return null;
+        }).when(mapper).updateEntity(any(CuentaRequestDTO.class), any(CuentaBancaria.class));
+        when(cuentaRepository.save(any(CuentaBancaria.class))).thenAnswer(inv -> inv.getArgument(0));
+        when(mapper.toDto(any(CuentaBancaria.class))).thenAnswer(inv -> {
+            CuentaBancaria c = inv.getArgument(0);
+            CuentaResponseDTO r = new CuentaResponseDTO();
+            r.setId(c.getId());
+            r.setSaldo(c.getSaldo());
+            r.setUsuarioId(c.getUsuario().getId());
+            return r;
+        });
+
+        // 3. Llamada
+        CuentaResponseDTO updated = service.actualizarCuenta(10L, req);
+
+        // 4. Verificar
+        assertNotNull(updated);
+        assertEquals(BigDecimal.valueOf(300), updated.getSaldo());
+
+        // 5. Interacciones
+        verify(cuentaRepository).findById(10L);
+        verify(mapper).updateEntity(any(CuentaRequestDTO.class), any(CuentaBancaria.class));
+        verify(cuentaRepository).save(any(CuentaBancaria.class));
+    }
+
+    //Retirar caso exitoso
+    @Test
+    void retirar_successful() {
+        when(cuentaRepository.findById(10L)).thenReturn(Optional.of(cuentaEntity));
+
+        // 1. Datos entrada
+        BigDecimal monto = BigDecimal.valueOf(500);
+
+        // 3. llamada
+        service.retirar(10L, monto);
+
+        // 4. Verificar estado: saldo reducido
+        assertEquals(BigDecimal.valueOf(500), cuentaEntity.getSaldo()); // 1000 - 500
+
+        // 5. Interacciones
+        verify(cuentaRepository).findById(10L);
+        verify(cuentaRepository).save(cuentaEntity);
+    }
+
+   //Retirar caso fallido
+    @Test
+    void retirar_failed_insufficient() {
+        when(cuentaRepository.findById(10L)).thenReturn(Optional.of(cuentaEntity));
+
+        BigDecimal monto = BigDecimal.valueOf(2000);
+
+        SaldoInsuficienteException ex = assertThrows(SaldoInsuficienteException.class,
+                () -> service.retirar(10L, monto));
+        assertTrue(ex.getMessage().contains("Intentaste retirar"));
+
+        verify(cuentaRepository).findById(10L);
+        verify(cuentaRepository, never()).save(any());
+    }
+
+    //Retirar cuenta No existente Caso fallido
+    @Test
+    void retirar_failed_cuentaNotFound() {
+        when(cuentaRepository.findById(55L)).thenReturn(Optional.empty());
+
+        assertThrows(CuentaNotFoundException.class, () -> service.retirar(55L, BigDecimal.TEN));
+
+        verify(cuentaRepository).findById(55L);
+        verify(cuentaRepository, never()).save(any());
+    }
+
+    //Eliminar Caso exitoso
+    @Test
+    void eliminar_successful() {
+        when(cuentaRepository.existsById(10L)).thenReturn(true);
+        doNothing().when(cuentaRepository).deleteById(10L);
+
+        service.eliminar(10L);
+
+        verify(cuentaRepository).existsById(10L);
+        verify(cuentaRepository).deleteById(10L);
+    }
+
+    //Eliminar Caso fallido
+    @Test
+    void eliminar_failed_notFound() {
+        when(cuentaRepository.existsById(99L)).thenReturn(false);
+
+        assertThrows(CuentaNotFoundException.class, () -> service.eliminar(99L));
+
+        verify(cuentaRepository).existsById(99L);
+        verify(cuentaRepository, never()).deleteById(anyLong());
     }
 }
